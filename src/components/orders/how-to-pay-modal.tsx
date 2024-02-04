@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { PaymentMethodInstruction } from '@/types';
+import { useTranslation } from 'next-i18next';
 import cn from 'classnames';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { MinusIcon } from '@/components/icons/minus-icon';
 import { PlusIcon } from '@/components/icons/plus-icon';
 import { heightCollapse } from '@/lib/motion/height-collapse';
-import { useTranslation } from 'next-i18next';
+import { ReactNode, useState } from 'react';
 
 type CollapseProps = {
   i: number;
   title: string;
-  content: string;
-  translatorNS: string;
+  content: ReactNode;
   expanded: number;
   setExpanded: any;
 };
@@ -21,13 +21,11 @@ const Collapse: React.FC<CollapseProps> = ({
   setExpanded,
   title,
   content,
-  translatorNS,
 }) => {
   const isOpen = i === expanded;
-  // active state style
   const activeClass = isOpen ? 'shadow-sm' : '';
 
-  const { t } = useTranslation(translatorNS);
+  const { t } = useTranslation('common');
 
   return (
     <div
@@ -64,7 +62,7 @@ const Collapse: React.FC<CollapseProps> = ({
             variants={heightCollapse()}
           >
             <div className="px-5 pb-4 text-sm leading-7 text-body-dark md:pt-1 md:text-base md:leading-loose">
-              {t(content)}
+              {content}
             </div>
           </motion.div>
         )}
@@ -73,31 +71,35 @@ const Collapse: React.FC<CollapseProps> = ({
   );
 };
 
-type AccordionProps = {
-  translatorNS: string;
-  items: {
-    title: string;
-    content: string;
-  }[];
-};
-
-const Accordion: React.FC<AccordionProps> = ({ items, translatorNS }) => {
+const HowToPayModal = ({ data }: { data: PaymentMethodInstruction[] }) => {
   const [expanded, setExpanded] = useState<number>(0);
+  const { t } = useTranslation('common');
+
   return (
-    <>
-      {items.map(({ title, content }, index) => (
-        <Collapse
-          i={index}
-          key={title}
-          title={title}
-          content={content}
-          expanded={expanded}
-          setExpanded={setExpanded}
-          translatorNS={translatorNS}
-        />
-      ))}
-    </>
+    <div className="w-[95vw] max-w-lg rounded-md bg-white p-8">
+      <h3 className="mb-2 text-center text-2xl font-semibold text-heading">
+        {t('text-how-to-pay')}
+      </h3>
+      <div className="mb-8">
+        {data.map(({ title, instructions }, index) => (
+          <Collapse
+            i={index}
+            key={title}
+            title={title}
+            content={
+              <ol className="ml-4 list-decimal">
+                {instructions.map((instruction, index) => {
+                  return <li key={index}>{instruction}</li>;
+                })}
+              </ol>
+            }
+            expanded={expanded}
+            setExpanded={setExpanded}
+          />
+        ))}
+      </div>
+    </div>
   );
 };
 
-export default Accordion;
+export default HowToPayModal;

@@ -8,24 +8,19 @@ import { useModalAction } from '@/components/ui/modal/modal.context';
 import Link from '@/components/ui/link';
 import { Routes } from '@/config/routes';
 import { getReview } from '@/lib/get-review';
+import { Order, Product } from '@/types';
 
 //FIXME: need to fix this usePrice hooks issue within the table render we may check with nested property
-const OrderItemList = (_: any, record: any) => {
+const OrderItemList = (_: any, record: Product) => {
   const { price } = usePrice({
-    amount: record.pivot?.unit_price,
+    amount: record.price,
   });
   let name = record.name;
-  if (record?.pivot?.variation_option_id) {
-    const variationTitle = record?.variation_options?.find(
-      (vo: any) => vo?.id === record?.pivot?.variation_option_id
-    )['title'];
-    name = `${name} - ${variationTitle}`;
-  }
   return (
     <div className="flex items-center">
       <div className="relative flex h-16 w-16 shrink-0 overflow-hidden rounded">
         <Image
-          src={record.image?.thumbnail ?? productPlaceholder}
+          src={record.photo?.original_url ?? productPlaceholder}
           alt={name}
           className="h-full w-full object-cover"
           layout="fill"
@@ -37,16 +32,9 @@ const OrderItemList = (_: any, record: any) => {
           <Link
             href={Routes.product(record?.slug)}
             className="inline-block overflow-hidden truncate text-sm text-body transition-colors hover:text-accent hover:underline"
-            locale={record?.language}
           >
             {name}
           </Link>
-          <span className="inline-block overflow-hidden truncate text-sm text-body">
-            x
-          </span>
-          <span className="inline-block overflow-hidden truncate text-sm font-semibold text-heading">
-            {record.unit}
-          </span>
         </div>
         <span className="mb-1 inline-block overflow-hidden truncate text-sm font-semibold text-accent">
           {price}
@@ -55,45 +43,39 @@ const OrderItemList = (_: any, record: any) => {
     </div>
   );
 };
-export const OrderItems = ({
-  products,
-  orderId,
-}: {
-  products: any;
-  orderId: any;
-}) => {
+export const OrderItems = ({ order }: { order: Order; orderId: string }) => {
   const { t } = useTranslation('common');
   const { alignLeft, alignRight } = useIsRTL();
-  const { openModal } = useModalAction();
 
   const orderTableColumns = [
     {
       title: <span className="ltr:pl-20 rtl:pr-20">{t('text-item')}</span>,
       dataIndex: '',
-      key: 'items',
+      key: 'name',
       align: alignLeft,
       ellipsis: true,
       render: OrderItemList,
     },
     {
       title: t('text-quantity'),
-      dataIndex: 'pivot',
-      key: 'pivot',
+      dataIndex: 'quantity',
+      key: 'quantity',
       align: 'center',
-      render: function renderQuantity(pivot: any) {
-        return <p className="text-base">{pivot.order_quantity}</p>;
+      render: (value: number) => {
+        return <p className="text-base">{value} pcs</p>;
       },
     },
     {
       title: t('text-price'),
-      dataIndex: 'pivot',
+      dataIndex: 'price',
       key: 'price',
       align: alignRight,
-      render: function RenderPrice(pivot: any) {
-        const { price } = usePrice({
-          amount: pivot.subtotal,
+      render: (price: number) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const { price: formatted } = usePrice({
+          amount: price,
         });
-        return <p>{price}</p>;
+        return <p>{formatted}</p>;
       },
     },
   ];
@@ -102,12 +84,8 @@ export const OrderItems = ({
     <Table
       //@ts-ignore
       columns={orderTableColumns}
-      data={products}
-      rowKey={(record: any) =>
-        record.pivot?.variation_option_id
-          ? record.pivot.variation_option_id
-          : record.created_at
-      }
+      data={[order.product]}
+      rowKey={(record: Product) => record.id}
       className="orderDetailsTable w-full"
       rowClassName="!cursor-auto"
       scroll={{ x: 350, y: 500 }}

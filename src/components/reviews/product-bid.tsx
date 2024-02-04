@@ -2,7 +2,6 @@ import { useTranslation } from 'next-i18next';
 import ReviewCard from '@/components/reviews/review-card';
 import Pagination from '@/components/ui/pagination';
 import { useEffect, useState } from 'react';
-import { useReviews } from '@/framework/review';
 import Sorting from './sorting';
 import StarFilter from './star-filter';
 import { useRouter } from 'next/router';
@@ -16,7 +15,7 @@ import { Bid } from '@/types';
 
 type ProductBidsProps = {
   className?: any;
-  productId: string;
+  productId: number;
 };
 
 const ProductBids: React.FC<ProductBidsProps> = ({ productId }) => {

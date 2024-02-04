@@ -1,4 +1,8 @@
-import type { WishlistPaginator, WishlistQueryOptions } from '@/types';
+import type {
+  BasicResponse,
+  WishlistPaginator,
+  WishlistQueryOptions,
+} from '@/types';
 import axios from 'axios';
 import { useTranslation } from 'next-i18next';
 import {
@@ -12,8 +16,9 @@ import client from './client';
 import { API_ENDPOINTS } from './client/api-endpoints';
 import { mapPaginatorData } from './utils/data-mappers';
 import { useRouter } from 'next/router';
+import { BasicResponseData } from '@/types';
 
-export function useToggleWishlist(product_id: string) {
+export function useToggleWishlist(product_id: number) {
   const queryClient = useQueryClient();
   const { t } = useTranslation('common');
   const {
@@ -22,10 +27,11 @@ export function useToggleWishlist(product_id: string) {
     isSuccess,
   } = useMutation(client.wishlist.toggle, {
     onSuccess: (data) => {
-      queryClient.setQueryData(
-        [`${API_ENDPOINTS.WISHLIST}/in_wishlist`, product_id],
-        (old: any) => !old
-      );
+      if (data.success) {
+        toast.success(t('text-added-to-wishlist'));
+        queryClient.refetchQueries([API_ENDPOINTS.WISHLIST]);
+        queryClient.refetchQueries([`${API_ENDPOINTS.WISHLIST}/in_wishlist`]);
+      }
     },
     onError: (error) => {
       if (axios.isAxiosError(error)) {
@@ -47,7 +53,8 @@ export function useRemoveFromWishlist() {
   } = useMutation(client.wishlist.remove, {
     onSuccess: () => {
       toast.success(t('text-removed-from-wishlist'));
-      queryClient.refetchQueries([API_ENDPOINTS.USERS_WISHLIST]);
+      queryClient.refetchQueries([API_ENDPOINTS.WISHLIST]);
+      queryClient.refetchQueries([`${API_ENDPOINTS.WISHLIST}/in_wishlist`]);
     },
     onError: (error) => {
       if (axios.isAxiosError(error)) {
@@ -60,11 +67,8 @@ export function useRemoveFromWishlist() {
 }
 
 export function useWishlist(options?: WishlistQueryOptions) {
-  const { locale } = useRouter();
-
   const formattedOptions = {
     ...options,
-    // language: locale
   };
 
   const {
@@ -76,7 +80,7 @@ export function useWishlist(options?: WishlistQueryOptions) {
     isFetching,
     isFetchingNextPage,
   } = useInfiniteQuery<WishlistPaginator, Error>(
-    [API_ENDPOINTS.USERS_WISHLIST, formattedOptions],
+    [API_ENDPOINTS.WISHLIST, formattedOptions],
     ({ queryKey, pageParam }) =>
       client.wishlist.all(Object.assign({}, queryKey[1], pageParam)),
     {
@@ -105,10 +109,13 @@ export function useInWishlist({
   enabled,
   product_id,
 }: {
-  product_id: string;
+  product_id: number;
   enabled: boolean;
 }) {
-  const { data, isLoading, error, refetch } = useQuery<boolean, Error>(
+  const { data, isLoading, error, refetch } = useQuery<
+    BasicResponseData<boolean>,
+    Error
+  >(
     [`${API_ENDPOINTS.WISHLIST}/in_wishlist`, product_id],
     () => client.wishlist.checkIsInWishlist({ product_id }),
     {
@@ -116,7 +123,7 @@ export function useInWishlist({
     }
   );
   return {
-    inWishlist: Boolean(data) ?? false,
+    inWishlist: Boolean(data?.data) ?? false,
     isLoading,
     error,
     refetch,

@@ -11,12 +11,14 @@ import {
   calculateTotalItems,
   calculateTotal,
 } from './cart.utils';
+import { CartResponse } from '@/types';
 
 interface Metadata {
   [key: string]: any;
 }
 
 type Action =
+  | { type: 'SYNC_CART'; items: Item[] }
   | { type: 'ADD_ITEMS_WITH_QUANTITY'; items: Item[] }
   | { type: 'ADD_ITEM_WITH_QUANTITY'; item: Item; quantity: number }
   | { type: 'REMOVE_ITEM_OR_QUANTITY'; id: Item['id']; quantity?: number }
@@ -48,6 +50,10 @@ export const initialState: State = {
 
 export function cartReducer(state: State, action: Action): State {
   switch (action.type) {
+    case 'SYNC_CART': {
+      const items = action.items;
+      return generateFinalState(state, items);
+    }
     case 'ADD_ITEMS_WITH_QUANTITY': {
       const items = [...state.items, ...action.items];
       return generateFinalState(state, items);

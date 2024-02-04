@@ -38,7 +38,7 @@ export default function OrderList({
         </h3>
         <Scrollbar className="w-full" style={{ height: 'calc(100% - 80px)' }}>
           <div className="px-5">
-            {orders.map((order: any, index: number) => (
+            {orders.map((order, index: number) => (
               <OrderCard
                 key={index}
                 order={order}

@@ -1,13 +1,14 @@
 import Card from '@/components/ui/cards/card';
 import Seo from '@/components/seo/seo';
 import DashboardLayout from '@/layouts/_dashboard';
-import MyNotifications from "@/components/notifications/my-notifications";
+import MyNotifications from '@/components/notifications/my-notifications';
+import { siteSettings } from '@/config/site';
 export { getStaticProps } from '@/framework/general.ssr';
 
 const MyNotificationPage = () => {
   return (
     <>
-      <Seo noindex={true} nofollow={true} />
+      <Seo title="Notification" url="notifications" />
       <Card className="w-full shadow-none sm:shadow">
         <MyNotifications />
       </Card>

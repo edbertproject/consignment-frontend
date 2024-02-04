@@ -29,6 +29,7 @@ import {
   ProductBidQueryOptions,
   ReviewPaginator,
   ReviewQueryOptions,
+  SingleData,
 } from '@/types';
 import axios from 'axios';
 
@@ -155,19 +156,19 @@ export const useIncomingProduct = (
   };
 };
 
-// export function useProduct({ slug }: { slug: string }) {
-//   const { locale: language } = useRouter();
-//
-//   const { data, isLoading, error } = useQuery<Product, Error>(
-//     [API_ENDPOINTS.PRODUCTS, { slug, language }],
-//     () => client.products.get({ slug, language })
-//   );
-//   return {
-//     product: data,
-//     isLoading,
-//     error,
-//   };
-// }
+export function useProduct(slug: string) {
+  const { locale: language } = useRouter();
+
+  const { data, isLoading, error } = useQuery<SingleData<Product>, Error>(
+    [API_ENDPOINTS.PRODUCTS, { slug }],
+    () => client.products.get({ slug })
+  );
+  return {
+    product: data?.data,
+    isLoading,
+    error,
+  };
+}
 
 export function useBids(options: Partial<ProductBidQueryOptions>) {
   const {
@@ -197,7 +198,7 @@ export function useBids(options: Partial<ProductBidQueryOptions>) {
   };
 }
 
-export function useBid(product_id: string) {
+export function useBid(product_id: number) {
   const queryClient = useQueryClient();
   const { closeModal } = useModalAction();
   const { t } = useTranslation('common');

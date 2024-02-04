@@ -3,9 +3,10 @@ import AddToCartBtn from '@/components/products/add-to-cart/add-to-cart-btn';
 import { cartAnimation } from '@/lib/cart-animation';
 import { useCart } from '@/store/quick-cart/cart.context';
 import { generateCartItem } from '@/store/quick-cart/generate-cart-item';
+import { Product } from '@/types';
 
 interface Props {
-  data: any;
+  data: Product;
   variant?:
     | 'helium'
     | 'neon'
@@ -31,7 +32,6 @@ export const AddToCart = ({
   variant = 'helium',
   counterVariant,
   counterClass,
-  variation,
   disabled,
 }: Props) => {
   const {
@@ -40,18 +40,12 @@ export const AddToCart = ({
     isInStock,
     getItemFromCart,
     isInCart,
-    updateCartLanguage,
-    language,
   } = useCart();
-  const item = generateCartItem(data, variation);
+  const item = generateCartItem(data);
   const handleAddClick = (
     e: React.MouseEvent<HTMLButtonElement | MouseEvent>
   ) => {
     e.stopPropagation();
-    // Check language and update
-    if (item?.language !== language) {
-      updateCartLanguage(item?.language);
-    }
     addItemToCart(item, 1);
     if (!isInCart(item.id)) {
       cartAnimation(e);

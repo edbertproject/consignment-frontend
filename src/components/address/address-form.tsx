@@ -19,6 +19,7 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import SelectForm from '@/components/ui/forms/select';
 import { useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Alert from '@/components/ui/alert';
 
 type FormValues = {
   label: string;
@@ -29,7 +30,6 @@ type FormValues = {
   province: any;
   city: any;
   district: any;
-  is_primary: boolean;
   note: string;
 };
 
@@ -42,7 +42,6 @@ const addressSchema = yup.object().shape({
   province: yup.object().required('error-province-required'),
   city: yup.object().required('error-city-required'),
   district: yup.object().required('error-district-required'),
-  is_primary: yup.boolean().required('error-is-primary-required'),
   note: yup.string().nullable(),
 });
 
@@ -112,16 +111,6 @@ export const AddressForm: React.FC<any> = ({
       className="grid h-full grid-cols-2 gap-5"
     >
       <>
-        <div className="flex items-center space-x-4 rtl:space-x-reverse">
-          <Checkbox
-            label={t('text-is-primary')}
-            type="checkbox"
-            {...register('is_primary')}
-            error={t(errors.is_primary?.message!)}
-            className="col-span-2"
-          />
-        </div>
-
         <Input
           label={t('text-label')}
           {...register('label')}
@@ -245,10 +234,18 @@ export default function CreateOrUpdateAddressForm() {
   const {
     data: { customerId, address, type },
   } = useModalState();
-  const { mutate: createAddress, isLoading: isLoadingCreate } =
-    useCreateAddress();
-  const { mutate: updateAddress, isLoading: isLoadingUpdate } =
-    useUpdateAddress();
+  const {
+    mutate: createAddress,
+    isLoading: isLoadingCreate,
+    serverError: createServerError,
+    setServerError: setCreateServerError,
+  } = useCreateAddress();
+  const {
+    mutate: updateAddress,
+    isLoading: isLoadingUpdate,
+    serverError: updateServerError,
+    setServerError: setUpdateServerError,
+  } = useUpdateAddress();
 
   function onSubmit(values: FormValues) {
     const formattedInput = {
@@ -269,6 +266,20 @@ export default function CreateOrUpdateAddressForm() {
       <h1 className="mb-4 text-center text-lg font-semibold text-heading sm:mb-6">
         {address ? t('text-update') : t('text-add-new')} {t('text-address')}
       </h1>
+      <Alert
+        variant="error"
+        message={createServerError}
+        className="mb-6"
+        closeable={true}
+        onClose={() => setCreateServerError(null)}
+      />
+      <Alert
+        variant="error"
+        message={updateServerError}
+        className="mb-6"
+        closeable={true}
+        onClose={() => setUpdateServerError(null)}
+      />
       <AddressForm
         onSubmit={onSubmit}
         isLoading={isLoadingCreate || isLoadingUpdate}

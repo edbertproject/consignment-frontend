@@ -1,5 +1,5 @@
 import { getLayout } from '@/components/layouts/layout';
-import Order from '@/components/orders/order-view';
+// import Order from '@/components/orders/order-view';
 import Seo from '@/components/seo/seo';
 import { useEffect } from 'react';
 import { PaymentStatus } from '@/types';
@@ -40,7 +40,7 @@ export default function OrderPage() {
   return (
     <>
       <Seo noindex={true} nofollow={true} />
-      <Order order={order} loadingStatus={!isLoading && isFetching} />
+      {/*<Order order={order} loadingStatus={!isLoading && isFetching} />*/}
     </>
   );
 }

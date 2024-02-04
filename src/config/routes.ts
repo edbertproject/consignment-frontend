@@ -27,7 +27,7 @@ export const Routes = {
   cards: '/cards',
   shop: (slug: string) => `/shops/${encodeURIComponent(slug)}`,
   downloads: '/downloads',
-  bids: '/bid',
+  bids: '/auctions',
   authors: '/authors',
   author: (slug: string) => `/authors/${encodeURIComponent(slug)}`,
   manufacturers: '/manufacturers',

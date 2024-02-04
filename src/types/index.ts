@@ -103,6 +103,7 @@ export interface ProductQueryOptions extends QueryOptions {
   text: string;
 }
 
+export interface PaymentMethodQueryOptions extends QueryOptions {}
 export interface HotProductQueryOptions extends QueryOptions {}
 export interface NewProductQueryOptions extends QueryOptions {}
 export interface IncomingProductQueryOptions extends QueryOptions {}
@@ -159,7 +160,7 @@ export interface ReviewQueryOptions extends QueryOptions {
 }
 
 export interface ProductBidQueryOptions extends QueryOptions {
-  product_id: string;
+  product_id: number;
 }
 
 export interface ReviewQueryOptions extends QueryOptions {
@@ -174,8 +175,6 @@ export interface QuestionQueryOptions extends QueryOptions {
   question?: string;
 }
 
-export interface MyQuestionQueryOptions extends QueryOptions {}
-
 export interface MyReportsQueryOptions extends QueryOptions {
   language: any;
 }
@@ -188,8 +187,10 @@ export interface SingleData<T> {
   data: T;
 }
 
+export interface NotificationResponse extends SingleData<Notification[]> {}
+
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   product_category?: ProductCategory;
@@ -207,11 +208,11 @@ export interface Product {
   condition?: string;
   warranty?: string;
   photo: Photo;
-  photos: Photo[];
+  photos?: Photo[];
   quantity: number;
   available_quantity: number;
-  in_wishlist: boolean;
-  related_products: Product[];
+  in_wishlist?: boolean;
+  related_products?: Product[];
   start_date: string;
   end_date: string;
   cancel_reason?: string;
@@ -219,6 +220,7 @@ export interface Product {
   seller_name?: string;
   seller_city?: string;
   current_bid: number;
+  partner_id: number | null;
   bids?: Bid[];
   winner?: User;
 }
@@ -228,6 +230,13 @@ export interface Bid {
   amount: number;
   date_time: string;
   user_name: string;
+}
+
+export interface CartResponse {
+  id: number;
+  user_id: number;
+  product_id: number;
+  quantity: number;
 }
 
 export interface CartItem {
@@ -351,6 +360,15 @@ export interface PaymentIntentInfo {
   amount: string;
 }
 
+export interface PaymentMethod {
+  id: number;
+  type: string;
+  code: string;
+  name: string;
+  description: string;
+  xendit_code: string;
+}
+
 export interface Card {
   expires: string;
   network: string;
@@ -360,41 +378,65 @@ export interface Card {
   default_card: number;
 }
 
-export interface PaymentIntent {
-  id: number | string;
-  order_id: number | string;
-  payment_gateway: PaymentGateway;
-  tracking_number: string;
-  payment_intent_info: PaymentIntentInfo;
+export interface Invoice {
+  id: string;
+  date: string;
+  number: string;
+  payment_number: string;
+  courier_code: string;
+  courier_service: string;
+  courier_esd: string;
+  subtotal: number;
+  tax_amount: number;
+  admin_fee: number;
+  platform_fee: number;
+  courier_cost: number;
+  grand_total: number;
+  xendit_key: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  payment_method?: PaymentMethod;
+}
+
+export interface OrderStatusDetail {
+  status: string;
+  type: string;
 }
 
 export interface Order {
-  id: number | string;
-  tracking_number: string;
-  customer_id: number | string;
-  customer_name: string;
-  customer_contact: string;
-  customer?: User;
-  amount: number;
-  children: Order[];
-  sales_tax: number;
-  total: number;
-  paid_total: number;
-  payment_gateway?: string;
-  coupon?: Coupon;
-  discount?: number;
-  delivery_fee?: number;
-  delivery_time?: string;
-  products: Product[];
+  id: string;
+  date: string;
+  number: string;
+  invoice_id: string;
+  user_id: number;
+  user_address_id: number;
+  product_id: number;
+  partner_id: number;
+  quantity: number;
+  price: number;
+  status: string;
+  status_seller: string;
+  seller_statuses?: OrderStatusDetail[];
+  status_seller_updated_at: string;
+  status_buyer: string;
+  buyer_statuses?: OrderStatusDetail[];
+  status_buyer_updated_at: string;
+  next_status: string;
+  can_process_next_status: boolean;
+  next_status_buyer: string[];
+  can_process_next_status_buyer: boolean;
+  next_status_seller: string;
+  can_process_next_status_seller: boolean;
+  notes: string;
+  product: Product;
+  user_address: Address;
+  user?: User;
+  partner?: User;
+  invoice: Invoice;
   created_at: Date;
   updated_at: Date;
-  billing_address?: Address;
-  shipping_address?: Address;
-  refund: Refund;
-  language?: string;
-  payment_intent?: PaymentIntent;
-  order_status: string;
-  payment_status: string;
 }
 
 export interface VerifyCouponInputType {
@@ -481,35 +523,30 @@ export interface Refund {
   updated_at: string;
 }
 
-export enum PaymentGateway {
-  STRIPE = 'STRIPE',
-  COD = 'CASH_ON_DELIVERY',
-  CASH = 'CASH',
-  FULL_WALLET_PAYMENT = 'FULL_WALLET_PAYMENT',
-  PAYPAL = 'PAYPAL',
-  MOLLIE = 'MOLLIE',
-  RAZORPAY = 'RAZORPAY',
-}
-
-export enum OrderStatus {
-  PENDING = 'order-pending',
-  PROCESSING = 'order-processing',
-  COMPLETED = 'order-completed',
-  CANCELLED = 'order-cancelled',
-  REFUNDED = 'order-refunded',
-  FAILED = 'order-failed',
-  AT_LOCAL_FACILITY = 'order-at-local-facility',
-  OUT_FOR_DELIVERY = 'order-out-for-delivery',
+export enum OrderStatusBuyer {
+  PENDING = 'Pending',
+  CANCELED = 'Canceled',
+  PROCESSED = 'Processed',
+  ON_DELIVERY = 'On Delivery',
+  ARRIVED = 'Arrived',
+  COMPLAIN = 'Complained',
+  COMPLETE = 'Complete',
 }
 
 export enum PaymentStatus {
-  PENDING = 'payment-pending',
-  PROCESSING = 'payment-processing',
-  SUCCESS = 'payment-success',
-  FAILED = 'payment-failed',
-  REVERSAL = 'payment-reversal',
-  COD = 'cash-on-delivery',
-  AWAITING_FOR_APPROVAL = 'payment-awaiting-for-approval',
+  PENDING = 'Pending',
+  PAID = 'Paid',
+  CANCELED = 'Canceled',
+}
+
+export enum OrderStatus {
+  WAITING_PAYMENT = 'Waiting Payment',
+  EXPIRED = 'Expired',
+  PAID = 'Paid',
+  PROCESS = 'Process',
+  PROBLEM = 'Problem',
+  FINISH = 'Finish',
+  CANCELED = 'Canceled',
 }
 
 enum RefundStatus {
@@ -520,7 +557,7 @@ enum RefundStatus {
 }
 
 export interface Address {
-  id: string;
+  id: number;
   title: string;
   label: string;
   receiver_name: string;
@@ -534,6 +571,17 @@ export interface Address {
   note: string;
 }
 
+export interface NotificationData {
+  subject: string;
+  message: string;
+}
+
+export interface Notification {
+  type: string;
+  data: NotificationData;
+  created_at: string;
+}
+
 export interface Shipping {
   code: string;
   name: string;
@@ -543,6 +591,11 @@ export interface Shipping {
   estimation_day: string;
 }
 
+export interface PaymentMethodInstruction {
+  title: string;
+  instructions: string[];
+}
+
 export interface PaymentMethod {
   id: number;
   type: string;
@@ -550,6 +603,21 @@ export interface PaymentMethod {
   name: string;
   description: string;
   xendit_code: string;
+  payment_method_instructions?: PaymentMethodInstruction[];
+}
+
+export enum StatusPartner {
+  UNREGISTERED = 'Unregistered',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  WAITING_APPROVAL = 'Waiting Approval',
+}
+
+export interface Partner {
+  id: number;
+  postal_code: string;
+  full_address: string;
+  status: string;
 }
 
 export interface User {
@@ -562,12 +630,26 @@ export interface User {
   gender?: string;
   bank_name?: string;
   bank_number?: string;
+  status_partner: StatusPartner;
   photo?: Photo;
+  partner: Partner;
   addresses?: Address[];
 }
 
-export interface UpdateUserInput extends Partial<User> {
+export interface UpdateUserInput {
   id: string;
+  username?: string;
+  name?: string;
+  phone_number?: string;
+  date_of_birth?: string;
+  gender?: any;
+  bank_name?: string;
+  bank_number?: string;
+  photo?: any;
+}
+
+export interface RegisterPartnerInput {
+  user_address_id: number;
 }
 
 export interface UserAddressInput {
@@ -579,7 +661,6 @@ export interface UserAddressInput {
   province_id: number;
   city_id: number;
   district_id: number;
-  is_primary: boolean;
   note: string;
 }
 
@@ -624,8 +705,9 @@ export interface VerifyForgotPasswordUserInput {
 }
 
 export interface ChangePasswordUserInput {
-  oldPassword: string;
-  newPassword: string;
+  old_password: string;
+  password: string;
+  password_confirmation: string;
 }
 
 export interface RegisterResponse {
@@ -669,6 +751,8 @@ export interface BasicResponse {
 }
 
 export interface BasicResponseData<T> {
+  success?: string;
+  message?: string;
   data: T;
 }
 
@@ -699,6 +783,21 @@ export interface DownloadableFile {
   updated_at: string;
 }
 
+export type AuctionProductStatus = 'EXPIRED' | 'WINNER' | 'LOSE';
+
+export interface AuctionProduct {
+  id: number;
+  name: string;
+  type: string;
+  slug: string;
+  can_pay: number;
+  expire_pay_date: string;
+  status: AuctionProductStatus;
+  current_bid: number;
+  current_bid_at: string;
+  photo?: Photo;
+}
+
 export interface CreateContactUsInput {
   name: string;
   email: string;
@@ -714,36 +813,15 @@ export interface CardInput {
   email?: string;
 }
 
-// enum PaymentGatewayType {
-//   STRIPE = 'Stripe',
-//   CASH_ON_DELIVERY = 'Cash on delivery',
-//   CASH = 'Cash',
-//   FULL_WALLET_PAYMENT = 'Full wallet payment',
-// }
-
 export interface CreateOrderInput {
-  customer_contact: string;
-  customer_name?: string;
-  status: string;
-  products: ConnectProductOrderPivot[];
-  amount: number;
-  sales_tax: number;
-  total: number;
-  paid_total: number;
-  payment_id?: string;
-  payment_gateway: PaymentGateway;
-  coupon_id?: string;
-  shop_id?: string;
-  customer_id?: string;
-  discount?: number;
-  use_wallet_points?: boolean;
-  delivery_fee?: number;
-  delivery_time: string;
-  card: CardInput;
-  token?: string;
-  billing_address: Address;
-  shipping_address: Address;
-  language?: string;
+  payment_method_id: number;
+  user_address_id: number;
+  courier_code: string;
+  courier_service: string;
+  courier_cost: number;
+  courier_esd: string;
+  cart_ids?: number[];
+  product_auction_id?: number;
 }
 
 export interface PaymentIntentCollection {
@@ -800,6 +878,11 @@ export interface CheckoutVerificationInput {
   products: ConnectProductOrderPivot[];
   billing_address?: Address;
   shipping_address?: Address;
+}
+
+export interface UpdateStatusBuyerInput {
+  status: OrderStatusBuyer;
+  id: string;
 }
 
 export interface VerifiedCheckoutData {
@@ -861,6 +944,9 @@ export interface ReportsPaginator extends PaginatorInfo<Question> {}
 
 export interface DownloadableFilePaginator
   extends PaginatorInfo<DownloadableFile> {}
+
+export interface AuctionProductPaginator
+  extends PaginatorInfo<AuctionProduct> {}
 
 export interface WishlistPaginator extends PaginatorInfo<Wishlist> {}
 

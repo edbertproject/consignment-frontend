@@ -21,15 +21,21 @@ function NoOrderFound() {
 }
 
 export default function OrdersPage() {
-  const { orders, isLoading, error, hasMore, loadMore, isLoadingMore, isFetching } = useOrders();
+  const {
+    orders,
+    isLoading,
+    error,
+    hasMore,
+    loadMore,
+    isLoadingMore,
+    isFetching,
+  } = useOrders();
   const [selectedOrder] = useSelectedOrder();
   const isLoadingStatus = !isLoadingMore && !isLoading && isFetching;
 
-  const ordersItem: any = orders;
-
   if (error) return <ErrorMessage message={error.message} />;
   // if (isLoading && !isEmpty(orders)) {
-  if (isLoading && isEmpty(ordersItem)) {
+  if (isLoading && isEmpty(orders)) {
     return (
       <div className="my-auto flex h-[80vh] w-full items-center justify-center rounded bg-light p-5 md:p-8">
         <Spinner simple className="h-10 w-10" />
@@ -38,7 +44,7 @@ export default function OrdersPage() {
   }
 
   // if (!isLoading && isEmpty(orders)) {
-  if (!isLoading && isEmpty(ordersItem)) {
+  if (!isLoading && isEmpty(orders)) {
     return <NoOrderFound />;
   }
   return (
@@ -46,16 +52,14 @@ export default function OrdersPage() {
       <Seo noindex={true} nofollow={true} />
       <div className="hidden w-full overflow-hidden lg:flex">
         <OrderList
-          orders={ordersItem}
+          orders={orders}
           isLoadingMore={isLoadingMore}
           loadMore={loadMore}
           hasMore={hasMore}
         />
         {selectedOrder && (
           <OrderDetails
-            order={
-              ordersItem.find((order: any) => order.id === selectedOrder.id)!
-            }
+            order={orders.find((order: any) => order.id === selectedOrder.id)!}
             loadingStatus={isLoadingStatus}
           />
         )}
@@ -64,7 +68,7 @@ export default function OrdersPage() {
         isLoadingMore={isLoadingMore}
         onLoadMore={loadMore}
         hasNextPage={hasMore}
-        orders={ordersItem}
+        orders={orders}
         loadingStatus={isLoadingStatus}
       />
     </>

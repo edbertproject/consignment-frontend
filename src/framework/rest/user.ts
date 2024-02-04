@@ -53,9 +53,34 @@ export const useDeleteAddress = () => {
   return useMutation(client.users.deleteAddress, {
     onSuccess: (data) => {
       if (data) {
-        toast.success('successfully-address-deleted');
+        toast.success('Successfully delete address');
         closeModal();
         return;
+      }
+    },
+    onError: (error) => {
+      const {
+        response: { data },
+      }: any = error ?? {};
+
+      toast.error(data?.message);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(API_ENDPOINTS.USERS_ME);
+    },
+  });
+};
+
+export const useRegisterPartner = () => {
+  const queryClient = useQueryClient();
+  const { closeModal } = useModalAction();
+  return useMutation(client.users.registerPartner, {
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(
+          'Successful register as partner, please check periodically the status of the registration'
+        );
+        closeModal();
       }
     },
     onError: (error) => {
@@ -75,27 +100,36 @@ export const useUpdateUser = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { closeModal } = useModalAction();
-  return useMutation(client.users.update, {
+  let [serverError, setServerError] = useState<string | null>(null);
+  const { mutate, isLoading } = useMutation(client.users.update, {
     onSuccess: (data) => {
-      if (data?.id) {
+      if (data.success) {
         toast.success(t('profile-update-successful'));
         closeModal();
       }
     },
     onError: (error) => {
-      toast.error(t('error-something-wrong'));
+      const {
+        response: { data },
+      }: any = error ?? {};
+
+      setServerError(data.message);
     },
     onSettled: () => {
       queryClient.invalidateQueries(API_ENDPOINTS.USERS_ME);
     },
   });
+
+  return { mutate, isLoading, serverError, setServerError };
 };
 
 export const useCreateAddress = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { closeModal } = useModalAction();
-  return useMutation(client.users.createAddress, {
+  let [serverError, setServerError] = useState<string | null>(null);
+
+  const { mutate, isLoading } = useMutation(client.users.createAddress, {
     onSuccess: (data) => {
       toast.success(data.message);
       closeModal();
@@ -105,19 +139,23 @@ export const useCreateAddress = () => {
         response: { data },
       }: any = error ?? {};
 
-      toast.error(t(data?.message));
+      setServerError(data.message);
     },
     onSettled: () => {
       queryClient.invalidateQueries(API_ENDPOINTS.USERS_ME);
     },
   });
+
+  return { mutate, isLoading, serverError, setServerError };
 };
 
 export const useUpdateAddress = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { closeModal } = useModalAction();
-  return useMutation(client.users.updateAddress, {
+  let [serverError, setServerError] = useState<string | null>(null);
+
+  const { mutate, isLoading } = useMutation(client.users.updateAddress, {
     onSuccess: (data) => {
       toast.success(data.message);
       closeModal();
@@ -127,12 +165,14 @@ export const useUpdateAddress = () => {
         response: { data },
       }: any = error ?? {};
 
-      toast.error(t(data?.message));
+      setServerError(data.message);
     },
     onSettled: () => {
       queryClient.invalidateQueries(API_ENDPOINTS.USERS_ME);
     },
   });
+
+  return { mutate, isLoading, serverError, setServerError };
 };
 
 export const useSelectProvince = () => {
@@ -459,19 +499,14 @@ export function useChangePassword() {
 
   const { mutate, isLoading } = useMutation(client.users.changePassword, {
     onSuccess: (data) => {
-      if (!data.success) {
-        setFormError({
-          oldPassword: data?.message ?? '',
-        });
-        return;
-      }
       toast.success(t('password-successful'));
     },
     onError: (error) => {
       const {
         response: { data },
       }: any = error ?? {};
-      setFormError(data);
+
+      toast.error(data.message);
     },
   });
 

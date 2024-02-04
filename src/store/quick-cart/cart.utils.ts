@@ -1,12 +1,16 @@
+import { Photo } from '@/types';
+
 export interface Item {
-  id: string | number;
+  cart_id?: number;
+  id: number;
   price: number;
   quantity?: number;
   stock?: number;
+  photo: Photo;
   [key: string]: any;
 }
 
-export interface UpdateItemInput extends Partial<Omit<Item, "id">> {}
+export interface UpdateItemInput extends Partial<Omit<Item, 'id'>> {}
 
 export function addItemWithQuantity(
   items: Item[],
@@ -29,7 +33,7 @@ export function addItemWithQuantity(
 
 export function removeItemOrQuantity(
   items: Item[],
-  id: Item["id"],
+  id: Item['id'],
   quantity: number
 ) {
   return items.reduce((acc: Item[], item) => {
@@ -48,13 +52,13 @@ export function addItem(items: Item[], item: Item) {
   return [...items, item];
 }
 
-export function getItem(items: Item[], id: Item["id"]) {
+export function getItem(items: Item[], id: Item['id']) {
   return items.find((item) => item.id === id);
 }
 
 export function updateItem(
   items: Item[],
-  id: Item["id"],
+  id: Item['id'],
   item: UpdateItemInput
 ) {
   return items.map((existingItem) =>
@@ -62,12 +66,12 @@ export function updateItem(
   );
 }
 
-export function removeItem(items: Item[], id: Item["id"]) {
+export function removeItem(items: Item[], id: Item['id']) {
   return items.filter((existingItem) => existingItem.id !== id);
 }
-export function inStock(items: Item[], id: Item["id"]) {
+export function inStock(items: Item[], id: Item['id']) {
   const item = getItem(items, id);
-  if (item) return item["quantity"]! < item["stock"]!;
+  if (item) return item['quantity']! < item['stock']!;
   return false;
 }
 export const calculateItemTotals = (items: Item[]) =>
@@ -85,17 +89,17 @@ export const calculateTotalItems = (items: Item[]) =>
 export const calculateUniqueItems = (items: Item[]) => items.length;
 
 interface PriceValues {
-  totalAmount: number;
+  baseAmount: number;
   tax: number;
-  shipping_charge: number;
+  admin: number;
+  platform: number;
+  shipping: number;
 }
-export const calculatePaidTotal = (
-  { totalAmount, tax, shipping_charge }: PriceValues,
-  discount?: number
-) => {
-  let paidTotal = totalAmount + tax + shipping_charge;
-  if (discount) {
-    paidTotal = paidTotal - discount;
-  }
-  return paidTotal;
+export const calculatePaidTotal = ({
+  baseAmount,
+  tax,
+  admin,
+  platform,
+}: PriceValues) => {
+  return baseAmount + tax + admin + platform;
 };

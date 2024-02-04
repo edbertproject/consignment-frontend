@@ -1,12 +1,7 @@
 import { useTranslation } from 'next-i18next';
-import {
-  addressAtom,
-  billingAddressAtom,
-  shippingAddressAtom,
-} from '@/store/checkout';
+import { addressAtom } from '@/store/checkout';
 import dynamic from 'next/dynamic';
 import { getLayout } from '@/components/layouts/layout';
-import { AddressType } from '@/framework/utils/constants';
 import Seo from '@/components/seo/seo';
 import { useUser } from '@/framework/user';
 export { getStaticProps } from '@/framework/general.ssr';
@@ -18,9 +13,6 @@ const AddressGrid = dynamic(
   () => import('@/components/checkout/address-grid'),
   { ssr: false }
 );
-const ContactGrid = dynamic(
-  () => import('@/components/checkout/contact/contact-grid')
-);
 const RightSideView = dynamic(
   () => import('@/components/checkout/right-side-view'),
   { ssr: false }
@@ -29,7 +21,7 @@ const RightSideView = dynamic(
 export default function CheckoutPage() {
   const { t } = useTranslation();
   const { me } = useUser();
-  const { id, addresses } = me ?? {};
+  const { addresses } = me ?? {};
   return (
     <>
       <Seo noindex={true} nofollow={true} />
@@ -46,7 +38,7 @@ export default function CheckoutPage() {
             />
             <ScheduleGrid
               className="bg-light p-5 shadow-700 md:p-8"
-              label={t('text-delivery-schedule')}
+              label={t('text-delivery-method')}
               count={2}
             />
           </div>

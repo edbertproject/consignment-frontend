@@ -2,9 +2,9 @@ import { verifiedResponseAtom } from '@/store/checkout';
 import { useAtom } from 'jotai';
 import isEmpty from 'lodash/isEmpty';
 import dynamic from 'next/dynamic';
-const UnverifiedItemList = dynamic(
-  () => import('@/components/checkout/item/unverified-item-list')
-);
+// const UnverifiedItemList = dynamic(
+//   () => import('@/components/checkout/item/unverified-item-list')
+// );
 const VerifiedItemList = dynamic(
   () => import('@/components/checkout/item/verified-item-list')
 );

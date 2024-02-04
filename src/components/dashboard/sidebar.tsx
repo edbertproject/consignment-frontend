@@ -5,8 +5,7 @@ import { useRouter } from 'next/router';
 import classNames from 'classnames';
 import { useLogout, useUser } from '@/framework/user';
 import { useSettings } from '@/framework/settings';
-import {PaymentGateway} from '@/types';
-import {Routes} from '@/config/routes';
+import { Routes } from '@/config/routes';
 
 type DashboardSidebarProps = {
   className?: string;
@@ -47,7 +46,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ className }) => {
             ?.slice(0, -1)
             .map((item: any, idx) => {
               // Optimize this
-              if (item?.href === Routes.cards && !item?.cardsPayment?.includes(settings?.paymentGateway?.toUpperCase())) return null;
+              if (
+                item?.href === Routes.cards &&
+                !item?.cardsPayment?.includes(
+                  settings?.paymentGateway?.toUpperCase()
+                )
+              )
+                return null;
               return (
                 <li className="py-1" key={idx}>
                   <Link
@@ -62,7 +67,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ className }) => {
                     {t(item.label)}
                   </Link>
                 </li>
-              )
+              );
             })}
         </ul>
         {/* End of top part menu */}

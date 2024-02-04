@@ -7,9 +7,10 @@ import { fadeInOut } from '@/lib/motion/fade-in-out';
 import usePrice from '@/lib/use-price';
 import { useTranslation } from 'next-i18next';
 import { useCart } from '@/store/quick-cart/cart.context';
+import { Item } from '@/store/quick-cart/cart.utils';
 
 interface CartItemProps {
-  item: any;
+  item: Item;
 }
 
 const CartItem = ({ item }: CartItemProps) => {
@@ -53,7 +54,7 @@ const CartItem = ({ item }: CartItemProps) => {
     >
       <div className="flex-shrink-0">
         <Counter
-          value={item.quantity}
+          value={item.quantity ?? 0}
           onDecrement={handleRemoveClick}
           onIncrement={handleIncrement}
           variant="pillVertical"
@@ -63,7 +64,9 @@ const CartItem = ({ item }: CartItemProps) => {
 
       <div className="relative mx-4 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden bg-gray-100 sm:h-16 sm:w-16">
         <Image
-          src={item?.photo ?? siteSettings?.product?.placeholderImage}
+          src={
+            item?.photo.original_url ?? siteSettings?.product?.placeholderImage
+          }
           alt={item.name}
           layout="fill"
           objectFit="contain"

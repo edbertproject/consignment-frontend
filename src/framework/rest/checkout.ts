@@ -34,12 +34,12 @@ export function useCheckOrder(language: string) {
   return { checkOrder: mutate, isLoading, isSuccess };
 }
 
-export const useShippingMethod = () => {
+export function useCheckAuctionProduct() {
   const { t } = useTranslation('common');
-
-  const { mutate, isLoading, isSuccess, data } = useMutation(
-    client.shippings.calculate,
+  const { mutateAsync, isLoading, isSuccess, data } = useMutation(
+    client.checkouts.verifyAuction,
     {
+      onSuccess: (data) => {},
       onError: (error) => {
         const {
           response: { data },
@@ -50,19 +50,14 @@ export const useShippingMethod = () => {
     }
   );
 
-  return {
-    loadShipping: mutate,
-    dataShipping: data?.data,
-    isLoadingShipping: isLoading,
-    isSuccess,
-  };
-};
+  return { checkOrder: mutateAsync, isLoading, isSuccess, data };
+}
 
-export const usePaymentMethod = () => {
+export const useShippingMethod = () => {
   const { t } = useTranslation('common');
 
   const { mutate, isLoading, isSuccess, data } = useMutation(
-    client.checkouts.paymentMethod,
+    client.shippings.calculate,
     {
       onError: (error) => {
         const {

@@ -13,7 +13,7 @@ const Index: NextPageWithLayout<
 > = ({ variables }) => {
   return (
     <>
-      <Seo title={siteSettings.name} url={siteSettings.slug} />
+      <Seo title="Home" url={siteSettings.slug} />
       <CompactLayout variables={variables} />
     </>
   );

@@ -80,20 +80,22 @@ export function useCarts(options?: Partial<ProductQueryOptions>) {
 }
 
 export function useServerCart() {
-  const queryClient = useQueryClient();
   const { t } = useTranslation('common');
-  const { mutate, isLoading, isSuccess } = useMutation(client.carts.update, {
-    onSuccess: (data) => {
-      console.log(data);
-    },
-    onError: (error) => {
-      const {
-        response: { data },
-      }: any = error ?? {};
+  const { mutate, mutateAsync, isLoading, isSuccess } = useMutation(
+    client.carts.update,
+    {
+      onSuccess: (data) => {
+        // console.log(data);
+      },
+      onError: (error) => {
+        const {
+          response: { data },
+        }: any = error ?? {};
 
-      toast.error(t(data?.message));
-    },
-  });
+        toast.error(t(data?.message));
+      },
+    }
+  );
 
-  return { updateCart: mutate, isLoading, isSuccess };
+  return { updateCart: mutateAsync, isLoading, isSuccess };
 }

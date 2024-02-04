@@ -7,11 +7,11 @@ import { useChangePassword } from '@/framework/user';
 import * as yup from 'yup';
 
 export const changePasswordSchema = yup.object().shape({
-  oldPassword: yup.string().required('error-old-password-required'),
-  newPassword: yup.string().required('error-new-password-required'),
-  passwordConfirmation: yup
+  old_password: yup.string().required('error-old-password-required'),
+  password: yup.string().required('error-new-password-required'),
+  password_confirmation: yup
     .string()
-    .oneOf([yup.ref('newPassword')], 'error-match-passwords')
+    .oneOf([yup.ref('password')], 'error-match-passwords')
     .required('error-confirm-password'),
 });
 
@@ -23,15 +23,20 @@ export default function ChangePasswordForm() {
     formError,
   } = useChangePassword();
 
-  function onSubmit({ newPassword, oldPassword }: ChangePasswordUserInput) {
+  function onSubmit({
+    password,
+    old_password,
+    password_confirmation,
+  }: ChangePasswordUserInput) {
     changePassword({
-      oldPassword,
-      newPassword,
+      old_password,
+      password,
+      password_confirmation,
     });
   }
 
   return (
-    <Form<ChangePasswordUserInput & { passwordConfirmation: string }>
+    <Form<ChangePasswordUserInput>
       onSubmit={onSubmit}
       validationSchema={changePasswordSchema}
       className="flex flex-col"
@@ -41,22 +46,22 @@ export default function ChangePasswordForm() {
         <>
           <PasswordInput
             label={t('text-old-password')}
-            {...register('oldPassword')}
-            error={t(errors.oldPassword?.message!)}
+            {...register('old_password')}
+            error={t(errors.old_password?.message!)}
             className="mb-5"
             variant="outline"
           />
           <PasswordInput
             label={t('text-new-password')}
-            {...register('newPassword')}
-            error={t(errors.newPassword?.message!)}
+            {...register('password')}
+            error={t(errors.password?.message!)}
             className="mb-5"
             variant="outline"
           />
           <PasswordInput
             label={t('text-confirm-password')}
-            {...register('passwordConfirmation')}
-            error={t(errors.passwordConfirmation?.message!)}
+            {...register('password_confirmation')}
+            error={t(errors.password_confirmation?.message!)}
             className="mb-5"
             variant="outline"
           />

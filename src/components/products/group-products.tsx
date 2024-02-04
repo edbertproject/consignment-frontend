@@ -25,7 +25,7 @@ export default function GroupProducts() {
               key={product.id}
             >
               <Image
-                src={product.image?.original ?? productPlaceholder}
+                src={product.photo?.original_url ?? productPlaceholder}
                 alt="Advertisement image"
                 width={isEven(idx) ? 960 : 1560}
                 height={960}

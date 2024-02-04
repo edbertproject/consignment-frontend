@@ -1,33 +1,23 @@
 import { RadioGroup } from '@headlessui/react';
 import { useTranslation } from 'next-i18next';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Alert from '@/components/ui/alert';
-import CashOnDelivery from '@/components/checkout/payment/cash-on-delivery';
 import { useAtom } from 'jotai';
-import { paymentGatewayAtom } from '@/store/checkout';
 import cn from 'classnames';
-import { useSettings } from '@/framework/settings';
-import { PaymentGateway } from '@/types';
-import PaymentOnline from '@/components/checkout/payment/payment-online';
-import Image from 'next/image';
-
-interface PaymentMethodInformation {
-  name: string;
-  value: PaymentGateway;
-  icon: string;
-  component: React.FunctionComponent;
-}
+import { PaymentMethod } from '@/types';
+import { usePaymentMethods } from '@/framework/order';
+import { paymentMethodAtom } from '@/store/checkout';
 
 interface PaymentGroupOptionProps {
-  payment: PaymentMethodInformation;
+  payment: PaymentMethod;
   theme?: string;
 }
 
 const PaymentGroupOption: React.FC<PaymentGroupOptionProps> = ({
-  payment: { name, value, icon },
+  payment,
   theme,
 }) => (
-  <RadioGroup.Option value={value} key={value}>
+  <RadioGroup.Option value={payment.id} key={payment.id}>
     {({ checked }) => (
       <div
         className={cn(
@@ -38,19 +28,9 @@ const PaymentGroupOption: React.FC<PaymentGroupOptionProps> = ({
           }
         )}
       >
-        {icon ? (
-          <>
-            <Image
-              src={icon}
-              alt={name}
-              className="h-[30px]"
-              width={63}
-              height={30}
-            />
-          </>
-        ) : (
-          <span className="text-xs font-semibold text-heading">{name}</span>
-        )}
+        <span className="text-xs font-semibold text-heading">
+          {payment.code}
+        </span>
       </div>
     )}
   </RadioGroup.Option>
@@ -60,45 +40,12 @@ const PaymentGrid: React.FC<{ className?: string; theme?: 'bw' }> = ({
   className,
   theme,
 }) => {
-  const [gateway, setGateway] = useAtom(paymentGatewayAtom);
+  const [gateway, setGateway] = useAtom(paymentMethodAtom);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { t } = useTranslation('common');
-  const { settings, isLoading } = useSettings();
-  // If no payment gateway is set and cash on delivery also disable then cash on delivery will be on by default
-  const isEnableCashOnDelivery =
-    (!settings?.useCashOnDelivery && !settings?.paymentGateway) ||
-    settings?.useCashOnDelivery;
 
-  // FixME
-  // @ts-ignore
-  const AVAILABLE_PAYMENT_METHODS_MAP: PaymentMethodInformation[] = [
-    {
-      name: "BCA",
-      value: PaymentGateway.COD,
-      icon: '',
-      component: CashOnDelivery,
-    },
-    {
-      name: "Mandiri",
-      value: PaymentGateway.STRIPE,
-      icon: '',
-      component: CashOnDelivery,
-    },
-    {
-      name: "BRI",
-      value: PaymentGateway.RAZORPAY,
-      icon: '',
-      component: CashOnDelivery,
-    },
-  ];
+  const { paymentMethods, isLoading } = usePaymentMethods();
 
-  useEffect(() => {
-    if (settings?.paymentGateway) {
-      setGateway(settings?.paymentGateway?.toUpperCase() as PaymentGateway);
-    } else {
-      setGateway(PaymentGateway.COD);
-    }
-  }, [isLoading, settings?.useCashOnDelivery, settings?.paymentGateway]);
   return (
     <div className={className}>
       {errorMessage ? (
@@ -116,18 +63,14 @@ const PaymentGrid: React.FC<{ className?: string; theme?: 'bw' }> = ({
           {t('text-choose-payment')}
         </RadioGroup.Label>
 
+        {isLoading && <small>Getting payment method...</small>}
+
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-          {
-            AVAILABLE_PAYMENT_METHODS_MAP.map((element, index) => {
-              return (
-                  <PaymentGroupOption
-                      key={index}
-                      theme={theme}
-                      payment={element}
-                  />
-              )
-            })
-          }
+          {paymentMethods.map((element, index) => {
+            return (
+              <PaymentGroupOption key={index} theme={theme} payment={element} />
+            );
+          })}
         </div>
       </RadioGroup>
     </div>

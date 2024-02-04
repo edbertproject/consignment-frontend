@@ -7,6 +7,7 @@ import { dehydrate } from 'react-query/hydration';
 import { API_ENDPOINTS } from '@/framework/client/api-endpoints';
 import { QueryClient } from 'react-query';
 import { SettingsQueryOptions } from '@/types';
+import { useRouter } from 'next/router';
 
 // This function gets called at build time
 type ParsedQueryParams = {
@@ -26,7 +27,7 @@ export const getStaticPaths: GetStaticPaths<ParsedQueryParams> = async ({
   };
 };
 type PageProps = {
-  product: Product;
+  slug: string;
 };
 export const getStaticProps: GetStaticProps<
   PageProps,
@@ -37,10 +38,9 @@ export const getStaticProps: GetStaticProps<
   const queryClient = new QueryClient();
 
   try {
-    const product = await client.products.get({ slug });
     return {
       props: {
-        product: product.data,
+        slug: slug,
         ...(await serverSideTranslations(locale!, ['common'])),
         dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
       },

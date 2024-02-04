@@ -13,21 +13,18 @@ export default function Uploader({
   multiple = false,
 }: any) {
   const { t } = useTranslation('common');
-  const {
-    mutate: upload,
-    isLoading,
-    files,
-  } = useUploads({
-    onChange,
-    defaultFiles: value,
-  });
+  // const {
+  //   mutate: upload,
+  //   isLoading,
+  //   files,
+  // } = useUploads({
+  //   onChange,
+  //   defaultFiles: value,
+  // });
 
-  const onDrop = useCallback(
-    (acceptedFiles) => {
-      upload(acceptedFiles);
-    },
-    [upload]
-  );
+  const onDrop = useCallback((acceptedFiles) => {
+    console.log(acceptedFiles);
+  }, []);
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/*',
     multiple,
@@ -44,25 +41,25 @@ export default function Uploader({
   // ],
   // excludeAcceptAllOption: true,
   // multiple: false
-  const thumbs = files.map((file: any, idx) => (
-    <div
-      className="relative mt-2 inline-flex flex-col overflow-hidden rounded border border-border-100 ltr:mr-2 rtl:ml-2"
-      key={idx}
-    >
-      <div className="flex h-16 w-16 min-w-0 items-center justify-center overflow-hidden">
-        {/* eslint-disable */}
-        <img src={file.preview} alt={file?.name} />
-      </div>
-    </div>
-  ));
+  // const thumbs = files.map((file: any, idx) => (
+  //   <div
+  //     className="relative mt-2 inline-flex flex-col overflow-hidden rounded border border-border-100 ltr:mr-2 rtl:ml-2"
+  //     key={idx}
+  //   >
+  //     <div className="flex h-16 w-16 min-w-0 items-center justify-center overflow-hidden">
+  //       {/* eslint-disable */}
+  //       <img src={file.preview} alt={file?.name} />
+  //     </div>
+  //   </div>
+  // ));
   //FIXME: maybe no need to use this
-  useEffect(
-    () => () => {
-      // Make sure to revoke the data uris to avoid memory leaks
-      files.forEach((file: any) => URL.revokeObjectURL(file.preview));
-    },
-    [files]
-  );
+  // useEffect(
+  //   () => () => {
+  //     // Make sure to revoke the data uris to avoid memory leaks
+  //     files.forEach((file: any) => URL.revokeObjectURL(file.preview));
+  //   },
+  //   [files]
+  // );
 
   return (
     <section className="upload">
@@ -89,8 +86,8 @@ export default function Uploader({
       </div>
 
       <aside className="mt-2 flex flex-wrap">
-        {!!thumbs.length && thumbs}
-        {isLoading && (
+        {/*{!!thumbs.length && thumbs}*/}
+        {false && (
           <div className="mt-2 flex h-16 items-center ltr:ml-2 rtl:mr-2">
             <Spinner
               text={t('text-loading')}

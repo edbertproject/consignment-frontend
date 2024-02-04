@@ -3,6 +3,7 @@ import { appWithTranslation } from 'next-i18next';
 import { SessionProvider } from 'next-auth/react';
 import '@/assets/css/main.css';
 import 'react-toastify/dist/ReactToastify.css';
+import 'react-datepicker/dist/react-datepicker.css';
 import { ToastContainer } from 'react-toastify';
 import { ModalProvider } from '@/components/ui/modal/modal.context';
 import ManagedModal from '@/components/ui/modal/managed-modal';

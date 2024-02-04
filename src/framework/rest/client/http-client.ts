@@ -26,9 +26,8 @@ Axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (
-      (error.response && error.response.status === 403) ||
-      (error.response &&
-        error.response.data.message === 'PICKBAZAR_ERROR.NOT_AUTHORIZED')
+      (error.response && error.response.status === 401) ||
+      (error.response && error.response.data.message === 'Unauthenticated')
     ) {
       Cookies.remove(AUTH_TOKEN_KEY);
       Router.reload();

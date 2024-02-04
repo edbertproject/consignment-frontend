@@ -1,6 +1,13 @@
 import React, { useCallback } from 'react';
 import { cartReducer, State, initialState } from './cart.reducer';
-import { Item, getItem, inStock } from './cart.utils';
+import {
+  Item,
+  getItem,
+  inStock,
+  addItemWithQuantity,
+  removeItemOrQuantity,
+  removeItem,
+} from './cart.utils';
 import { useLocalStorage } from '@/lib/use-local-storage';
 import { CART_KEY } from '@/lib/constants';
 import { useAtom } from 'jotai';
@@ -33,7 +40,7 @@ export const useCart = () => {
 };
 
 export const CartProvider: React.FC = (props) => {
-  const { updateCart, isLoading, isSuccess } = useServerCart();
+  const { updateCart } = useServerCart();
 
   const [savedCart, saveCart] = useLocalStorage(
     CART_KEY,
@@ -50,24 +57,47 @@ export const CartProvider: React.FC = (props) => {
 
   React.useEffect(() => {
     saveCart(JSON.stringify(state));
+  }, [state, saveCart]);
+
+  const updateCarts = useCallback((items: Item[]) => {
     updateCart({
-      carts: state.items.map((e) => {
+      carts: items.map((e) => {
         return {
           product_id: e.id,
           quantity: e.quantity,
         } as CartItem;
       }),
-    });
-  }, [state, saveCart]);
+    }).then((response) => {
+      const { data } = response;
 
-  const addItemsToCart = (items: Item[]) =>
-    dispatch({ type: 'ADD_ITEMS_WITH_QUANTITY', items });
-  const addItemToCart = (item: Item, quantity: number) =>
-    dispatch({ type: 'ADD_ITEM_WITH_QUANTITY', item, quantity });
-  const removeItemFromCart = (id: Item['id']) =>
-    dispatch({ type: 'REMOVE_ITEM_OR_QUANTITY', id });
-  const clearItemFromCart = (id: Item['id']) =>
-    dispatch({ type: 'REMOVE_ITEM', id });
+      dispatch({
+        type: 'SYNC_CART',
+        items: items.map((item) => {
+          const cartResponse = data.find((i) => i.product_id === item.id);
+          if (cartResponse) item.cart_id = cartResponse?.id;
+          console.log(item);
+          return item;
+        }),
+      });
+    });
+  }, []);
+
+  const addItemsToCart = (items: Item[]) => updateCarts(items);
+  const addItemToCart = (item: Item, quantity: number) => {
+    const items = addItemWithQuantity(state.items, item, quantity);
+
+    updateCarts(items);
+  };
+  const removeItemFromCart = (id: Item['id']) => {
+    const items = removeItemOrQuantity(state.items, id, 1);
+
+    updateCarts(items);
+  };
+  const clearItemFromCart = (id: Item['id']) => {
+    const items = removeItem(state.items, id);
+
+    updateCarts(items);
+  };
   const isInCart = useCallback(
     (id: Item['id']) => !!getItem(state.items, id),
     [state.items]
@@ -82,7 +112,11 @@ export const CartProvider: React.FC = (props) => {
   );
   const updateCartLanguage = (language: string) =>
     dispatch({ type: 'UPDATE_CART_LANGUAGE', language });
-  const resetCart = () => dispatch({ type: 'RESET_CART' });
+  const resetCart = () => {
+    updateCarts([]);
+
+    dispatch({ type: 'RESET_CART' });
+  };
   const value = React.useMemo(
     () => ({
       ...state,

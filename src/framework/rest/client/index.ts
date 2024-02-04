@@ -24,7 +24,6 @@ import type {
   Manufacturer,
   ManufacturerPaginator,
   ManufacturerQueryOptions,
-  MyQuestionQueryOptions,
   MyReportsQueryOptions,
   Order,
   OrderPaginator,
@@ -79,18 +78,26 @@ import type {
   DistrictPaginator,
   CityPaginator,
   PaymentMethodResponse,
+  PaymentMethod,
 } from '@/types';
 import { API_ENDPOINTS } from './api-endpoints';
 import { HttpClient } from './http-client';
 import {
   AddressResponse,
+  AuctionProductPaginator,
   BasicResponse,
+  BasicResponseData,
+  BasicResponseWithData,
   CartItem,
+  CartResponse,
+  NotificationResponse,
   ProvincePaginator,
+  RegisterPartnerInput,
   RegisterResponse,
   RegisterTokenVerify,
   ShippingResponse,
   SingleData,
+  UpdateStatusBuyerInput,
   UserAddressInput,
   UserResponse,
 } from '@/types';
@@ -127,7 +134,7 @@ class Client {
           ...params,
         }
       ),
-    bid: (input: { product_id: string; amount: number }) =>
+    bid: (input: { product_id: number; amount: number }) =>
       HttpClient.post<BasicResponse>(
         `${API_ENDPOINTS.PRODUCTS}/${input.product_id}/bid`,
         input
@@ -152,16 +159,10 @@ class Client {
         }
       ),
     update: (payload: { carts: CartItem[] }) =>
-      HttpClient.put<BasicResponse>(API_ENDPOINTS.CART_UPDATE, payload),
-  };
-  myQuestions = {
-    all: (params: MyQuestionQueryOptions) =>
-      HttpClient.get<QuestionPaginator>(API_ENDPOINTS.MY_QUESTIONS, {
-        with: 'user',
-        orderBy: 'created_at',
-        sortedBy: 'desc',
-        ...params,
-      }),
+      HttpClient.put<BasicResponseWithData<CartResponse>>(
+        API_ENDPOINTS.CART_UPDATE,
+        payload
+      ),
   };
   myReports = {
     all: (params: MyReportsQueryOptions) =>
@@ -254,7 +255,9 @@ class Client {
   orders = {
     all: (params: Partial<OrderQueryOptions>) =>
       HttpClient.get<OrderPaginator>(API_ENDPOINTS.ORDERS, {
-        with: 'refund',
+        with: 'product.photo;userAddress;user;invoice.paymentMethod.paymentMethodInstructions;partner.province;partner;buyerStatuses',
+        order_by: 'created_at',
+        sorted_by: 'desc',
         ...params,
       }),
     get: (tracking_number: string) =>
@@ -269,15 +272,14 @@ class Client {
       HttpClient.post<any>(API_ENDPOINTS.ORDERS_PAYMENT, input),
     savePaymentMethod: (input: any) =>
       HttpClient.post<any>(API_ENDPOINTS.SAVE_PAYMENT_METHOD, input),
-
-    downloadable: (query?: OrderQueryOptions) =>
-      HttpClient.get<DownloadableFilePaginator>(
-        API_ENDPOINTS.ORDERS_DOWNLOADS,
-        query
-      ),
     verify: (input: CheckoutVerificationInput) =>
       HttpClient.post<VerifiedCheckoutData>(
         API_ENDPOINTS.ORDERS_CHECKOUT_VERIFY,
+        input
+      ),
+    updateStatusBuyer: (input: UpdateStatusBuyerInput) =>
+      HttpClient.put<BasicResponse>(
+        `${API_ENDPOINTS.ORDERS_STATUS_BUYER}/${input.id}`,
         input
       ),
     generateDownloadLink: (input: { digital_file_id: string }) =>
@@ -290,26 +292,56 @@ class Client {
         tracking_number,
       }),
   };
+  notification = {
+    all: (params: Partial<QueryOptions>) =>
+      HttpClient.get<NotificationResponse>(API_ENDPOINTS.USERS_NOTIFICATION, {
+        per_page: 9999,
+        ...params,
+      }),
+  };
   checkouts = {
     verify: () =>
       HttpClient.post<BasicResponse>(API_ENDPOINTS.ORDERS_CHECK, null),
+    verifyAuction: (product_id: number) =>
+      HttpClient.post<BasicResponseData<Product>>(
+        API_ENDPOINTS.ORDERS_CHECK_AUCTION,
+        {
+          product_id,
+        }
+      ),
     paymentMethod: (payload: QueryOptions) =>
-      HttpClient.post<PaymentMethodResponse>(
+      HttpClient.get<PaginatorInfo<PaymentMethod>>(
         API_ENDPOINTS.PAYMENT_METHODS,
         payload
       ),
   };
   shippings = {
-    calculate: (payload: { user_address_id: string }) =>
+    calculate: (payload: {
+      user_address_id: string;
+      product_auction_id?: string;
+    }) =>
       HttpClient.post<ShippingResponse>(
         API_ENDPOINTS.SHIPPINGS_CALCULATE,
         payload
       ),
   };
   users = {
-    me: () => HttpClient.get<UserResponse>(API_ENDPOINTS.USERS_ME),
+    me: () =>
+      HttpClient.get<UserResponse>(API_ENDPOINTS.USERS_ME, {
+        with: 'photo',
+      }),
+    myAuction: (query: QueryOptions) =>
+      HttpClient.get<AuctionProductPaginator>(
+        API_ENDPOINTS.USERS_AUCTION,
+        query
+      ),
     update: (user: UpdateUserInput) =>
-      HttpClient.put<User>(`${API_ENDPOINTS.USERS}/${user.id}`, user),
+      HttpClient.post<BasicResponse>(`${API_ENDPOINTS.USERS_ME}`, user),
+    registerPartner: (input: RegisterPartnerInput) =>
+      HttpClient.post<BasicResponse>(
+        `${API_ENDPOINTS.USERS_PARTNER_REGISTER}`,
+        input
+      ),
     login: (input: LoginUserInput) =>
       HttpClient.post<AuthResponse>(API_ENDPOINTS.USERS_LOGIN, {
         client_id: parseInt(process.env.NEXT_PUBLIC_PASSPORT_CLIENT_ID || ''),
@@ -385,18 +417,19 @@ class Client {
   };
   wishlist = {
     all: (params: WishlistQueryOptions) =>
-      HttpClient.get<WishlistPaginator>(API_ENDPOINTS.USERS_WISHLIST, {
-        with: 'shop',
-        orderBy: 'created_at',
-        sortedBy: 'desc',
+      HttpClient.get<WishlistPaginator>(API_ENDPOINTS.WISHLIST, {
+        with: 'product.photo;user',
         ...params,
       }),
-    toggle: (input: { product_id: string; language?: string }) =>
-      HttpClient.post(API_ENDPOINTS.USERS_WISHLIST_TOGGLE, input),
-    remove: (id: string) =>
+    toggle: (input: { product_id: number; language?: string }) =>
+      HttpClient.post<BasicResponse>(
+        API_ENDPOINTS.USERS_WISHLIST_TOGGLE,
+        input
+      ),
+    remove: (id: number) =>
       HttpClient.delete<Wishlist>(`${API_ENDPOINTS.WISHLIST}/${id}`),
-    checkIsInWishlist: ({ product_id }: { product_id: string }) =>
-      HttpClient.get<boolean>(
+    checkIsInWishlist: ({ product_id }: { product_id: number }) =>
+      HttpClient.get<BasicResponseData<boolean>>(
         `${API_ENDPOINTS.WISHLIST}/in_wishlist/${product_id}`
       ),
   };

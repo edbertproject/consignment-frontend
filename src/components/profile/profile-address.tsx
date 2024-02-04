@@ -3,9 +3,10 @@ import AddressCard from '@/components/address/address-card';
 import { AddressHeader } from '@/components/address/address-header';
 import { useTranslation } from 'next-i18next';
 import { AddressType } from '@/framework/utils/constants';
+import { Address } from '@/types';
 
 interface AddressesProps {
-  addresses: any[] | undefined;
+  addresses: Address[] | undefined;
   label: string;
   className?: string;
   userId: string;
@@ -20,13 +21,19 @@ export const ProfileAddressGrid: React.FC<AddressesProps> = ({
   const { openModal } = useModalAction();
   const { t } = useTranslation('common');
 
-  //TODO: no address found
   function onAdd() {
     openModal('ADD_OR_UPDATE_ADDRESS', {
       customerId: userId,
-      type: AddressType.Billing,
     });
   }
+
+  function onEdit(address: any) {
+    openModal('ADD_OR_UPDATE_ADDRESS', { customerId: userId, address });
+  }
+  function onDelete(address: any) {
+    openModal('DELETE_ADDRESS', { customerId: userId, addressId: address?.id });
+  }
+
   return (
     <div className={className}>
       <AddressHeader onAdd={onAdd} count={false} label={label} />
@@ -35,12 +42,14 @@ export const ProfileAddressGrid: React.FC<AddressesProps> = ({
           <AddressCard
             checked={false}
             address={address}
+            onDelete={() => onDelete(address)}
+            onEdit={() => onEdit(address)}
             userId={userId}
             key={address.id}
           />
         ))}
         {!Boolean(addresses?.length) && (
-          <span className="relative px-5 py-6 text-base text-left bg-gray-100 border rounded border-border-200">
+          <span className="relative rounded border border-border-200 bg-gray-100 px-5 py-6 text-left text-base">
             {t('text-no-address')}
           </span>
         )}

@@ -17,10 +17,13 @@ const nextConfig = {
       'pickbazarlaravel.s3.ap-southeast-1.amazonaws.com',
       'pixarlaravel.s3.ap-southeast-1.amazonaws.com',
       'skripsi-backend.test',
+      'apollo-singapore.akamaized.net',
+      'drive.google.com',
       'lh3.googleusercontent.com',
       'localhost',
       '127.0.0.1',
       'i.pravatar.cc',
+      'i.postimg.cc',
     ],
   },
   ...(process.env.FRAMEWORK_PROVIDER === 'graphql' && {

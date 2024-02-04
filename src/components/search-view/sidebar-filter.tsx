@@ -5,8 +5,6 @@ import { useRouter } from 'next/router';
 import Sorting from './sorting';
 import PriceFilter from '@/components/search-view/price-filter';
 import CategoryFilter from '@/components/search-view/category-filter-view';
-import TagFilter from '@/components/search-view/tag-filter-view';
-import ManufacturerFilter from '@/components/search-view/manufacturer-filter-view';
 import classNames from 'classnames';
 import { useAtom } from 'jotai';
 import { drawerAtom } from '@/store/drawer-atom';

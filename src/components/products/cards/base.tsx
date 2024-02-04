@@ -78,12 +78,8 @@ const Base: React.FC<BaseProps> = ({ product, className }) => {
             </div>
           </div>
           <div className="flex items-center text-sm text-neutral-500">
-            {product.type === 'Auction' && (
-              <>
-                <TimeIcon />
-                <span className="ml-1 mt-0.5">{getDate()}</span>
-              </>
-            )}
+            <TimeIcon />
+            <span className="ml-1 mt-0.5">{getDate()}</span>
           </div>
         </div>
       </div>

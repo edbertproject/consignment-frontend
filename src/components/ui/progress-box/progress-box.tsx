@@ -5,15 +5,10 @@ import styles from './progress-box.module.css';
 
 type ProgressProps = {
   data: any[] | undefined;
-  status: string;
   filledIndex: number;
 };
 
-const ProgressBox: React.FC<ProgressProps> = ({
-  status,
-  data,
-  filledIndex,
-}) => {
+const ProgressBox: React.FC<ProgressProps> = ({ data, filledIndex }) => {
   return (
     <Scrollbar
       className="h-full w-full"

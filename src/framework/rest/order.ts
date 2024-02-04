@@ -1,4 +1,5 @@
 import {
+  AuctionProductPaginator,
   CreateOrderInput,
   CreateOrderPaymentInput,
   CreateRefundInput,
@@ -6,7 +7,10 @@ import {
   Order,
   OrderPaginator,
   OrderQueryOptions,
-  PaymentGateway,
+  PaginatorInfo,
+  PaymentMethod,
+  PaymentMethodQueryOptions,
+  Product,
   QueryOptions,
 } from '@/types';
 import {
@@ -23,12 +27,10 @@ import client from './client';
 import { useAtom } from 'jotai';
 import { verifiedResponseAtom } from '@/store/checkout';
 import { useRouter } from 'next/router';
-import { Routes } from '@/config/routes';
 import { mapPaginatorData } from '@/framework/utils/data-mappers';
+import { useCart } from '@/store/quick-cart/cart.context';
 
 export function useOrders(options?: Partial<OrderQueryOptions>) {
-  const { locale } = useRouter();
-
   const formattedOptions = {
     ...options,
     // language: locale
@@ -47,8 +49,10 @@ export function useOrders(options?: Partial<OrderQueryOptions>) {
     ({ queryKey, pageParam }) =>
       client.orders.all(Object.assign({}, queryKey[1], pageParam)),
     {
-      getNextPageParam: ({ current_page, last_page }) =>
-        last_page > current_page && { page: current_page + 1 },
+      getNextPageParam: ({ meta }) =>
+        meta.last_page > meta.current_page && {
+          page: meta.current_page + 1,
+        },
       refetchOnWindowFocus: false,
     }
   );
@@ -69,6 +73,54 @@ export function useOrders(options?: Partial<OrderQueryOptions>) {
     loadMore: handleLoadMore,
     hasMore: Boolean(hasNextPage),
   };
+}
+
+export const usePaymentMethods = (
+  options?: Partial<PaymentMethodQueryOptions>
+) => {
+  const { locale } = useRouter();
+
+  const formattedOptions = {
+    ...options,
+    language: locale,
+  };
+
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useQuery<PaginatorInfo<PaymentMethod>, Error>(
+    [API_ENDPOINTS.PAYMENT_METHODS, formattedOptions],
+    ({ queryKey }) =>
+      client.checkouts.paymentMethod(queryKey[1] as PaymentMethodQueryOptions)
+  );
+
+  return {
+    paymentMethods: response?.data ?? [],
+    isLoading,
+    error,
+  };
+};
+
+export function useUpdateStatusBuyer() {
+  const queryClient = useQueryClient();
+
+  return useMutation(client.orders.updateStatusBuyer, {
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(data.message);
+
+        queryClient.invalidateQueries(API_ENDPOINTS.ORDERS);
+      }
+    },
+    onError: (error) => {
+      const {
+        response: { data },
+      }: any = error ?? {};
+
+      toast.error(data?.message);
+    },
+  });
 }
 
 export function useOrder({ tracking_number }: { tracking_number: string }) {
@@ -110,8 +162,10 @@ export function useRefunds(options: Pick<QueryOptions, 'limit'>) {
     ({ queryKey, pageParam }) =>
       client.orders.refunds(Object.assign({}, queryKey[1], pageParam)),
     {
-      getNextPageParam: ({ current_page, last_page }) =>
-        last_page > current_page && { page: current_page + 1 },
+      getNextPageParam: ({ meta }) =>
+        meta.last_page > meta.current_page && {
+          page: meta.current_page + 1,
+        },
     }
   );
 
@@ -132,11 +186,7 @@ export function useRefunds(options: Pick<QueryOptions, 'limit'>) {
   };
 }
 
-export const useDownloadableProducts = (
-  options: Pick<QueryOptions, 'limit'>
-) => {
-  const { locale } = useRouter();
-
+export const useAuctionProducts = (options: Pick<QueryOptions, 'limit'>) => {
   const formattedOptions = {
     ...options,
     // language: locale
@@ -150,13 +200,15 @@ export const useDownloadableProducts = (
     fetchNextPage,
     hasNextPage,
     error,
-  } = useInfiniteQuery<DownloadableFilePaginator, Error>(
-    [API_ENDPOINTS.ORDERS_DOWNLOADS, formattedOptions],
+  } = useInfiniteQuery<AuctionProductPaginator, Error>(
+    [API_ENDPOINTS.USERS_AUCTION, formattedOptions],
     ({ queryKey, pageParam }) =>
-      client.orders.downloadable(Object.assign({}, queryKey[1], pageParam)),
+      client.users.myAuction(Object.assign({}, queryKey[1], pageParam)),
     {
-      getNextPageParam: ({ current_page, last_page }) =>
-        last_page > current_page && { page: current_page + 1 },
+      getNextPageParam: ({ meta }) =>
+        meta.last_page > meta.current_page && {
+          page: meta.current_page + 1,
+        },
       refetchOnWindowFocus: false,
     }
   );
@@ -166,7 +218,7 @@ export const useDownloadableProducts = (
   }
 
   return {
-    downloads: data?.pages?.flatMap((page) => page.data) ?? [],
+    auctions: data?.pages?.flatMap((page) => page.data) ?? [],
     paginatorInfo: Array.isArray(data?.pages)
       ? mapPaginatorData(data?.pages[data.pages.length - 1])
       : null,
@@ -220,29 +272,11 @@ export function useCreateRefund() {
 
 export function useCreateOrder() {
   const router = useRouter();
-  const { locale } = router;
-  const { t } = useTranslation();
+  const { resetCart } = useCart();
   const { mutate: createOrder, isLoading } = useMutation(client.orders.create, {
-    onSuccess: ({ tracking_number, payment_gateway, payment_intent }) => {
-      if (tracking_number) {
-        if (
-          [
-            PaymentGateway.COD,
-            PaymentGateway.CASH,
-            PaymentGateway.FULL_WALLET_PAYMENT,
-          ].includes(payment_gateway as PaymentGateway)
-        ) {
-          return router.push(Routes.order(tracking_number));
-        }
-
-        if (payment_intent?.payment_intent_info?.is_redirect) {
-          return router.push(
-            payment_intent?.payment_intent_info?.redirect_url as string
-          );
-        } else {
-          return router.push(`${Routes.order(tracking_number)}/payment`);
-        }
-      }
+    onSuccess: () => {
+      resetCart();
+      router.push('/orders').catch();
     },
     onError: (error) => {
       const {
@@ -252,29 +286,9 @@ export function useCreateOrder() {
     },
   });
 
-  function formatOrderInput(input: CreateOrderInput) {
-    const formattedInputs = {
-      ...input,
-      language: locale,
-      invoice_translated_text: {
-        subtotal: t('order-sub-total'),
-        discount: t('order-discount'),
-        tax: t('order-tax'),
-        delivery_fee: t('order-delivery-fee'),
-        total: t('order-total'),
-        products: t('text-products'),
-        quantity: t('text-quantity'),
-        invoice_no: t('text-invoice-no'),
-        date: t('text-date'),
-      },
-    };
-    createOrder(formattedInputs);
-  }
-
   return {
-    createOrder: formatOrderInput,
+    createOrder,
     isLoading,
-    // isPaymentIntentLoading
   };
 }
 

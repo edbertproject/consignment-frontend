@@ -20,15 +20,15 @@ export default function CompactLayout({ variables }: HomePageProps) {
         <Categories layout="compact" variables={variables.categories} />
         <NewProductGrid variables={variables.newProducts} />
         <IncomingProducts variables={variables.incomingProducts} />
-        <SectionBlock>
-          <Image
-            className="h-full w-full rounded-xl"
-            src="https://images.tokopedia.net/img/cache/1190/wmEwCC/2023/3/20/669963a1-528a-4ae1-a80a-600bb1053680.jpg.webp?ect=4g"
-            width={1190}
-            height={396}
-            layout="responsive"
-          />
-        </SectionBlock>
+        {/*<SectionBlock>*/}
+        {/*  <Image*/}
+        {/*    className="h-full w-full rounded-xl"*/}
+        {/*    src="https://images.tokopedia.net/img/cache/1190/wmEwCC/2023/3/20/669963a1-528a-4ae1-a80a-600bb1053680.jpg.webp?ect=4g"*/}
+        {/*    width={1190}*/}
+        {/*    height={396}*/}
+        {/*    layout="responsive"*/}
+        {/*  />*/}
+        {/*</SectionBlock>*/}
       </main>
     </div>
   );

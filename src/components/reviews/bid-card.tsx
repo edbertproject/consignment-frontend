@@ -29,14 +29,13 @@ export default function BidCard({ bid }: BidCardProps) {
   return (
     <div className="border-t border-border-200 border-opacity-70 py-7 first:border-t-0">
       <div className="mb-4 flex items-center text-xs text-gray-500">
-        {t('text-by')}{' '}
-        <span className="capitalize ltr:ml-1 rtl:mr-1">{user_name}</span>
+        <span className="capitalize">{user_name}</span>
       </div>
       <p className="text-base leading-7 text-heading">{formatPrice(amount)}</p>
 
       <div className="flex items-center justify-between">
         <div className="mt-3.5 text-xs text-gray-400">
-          {t('text-date')}: {dayjs(date_time).format('h:mm:ss A D MMMM YYYY')}
+          {dayjs(date_time).format('h:mm:ss A D MMMM YYYY')}
         </div>
       </div>
     </div>

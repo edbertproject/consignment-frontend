@@ -1,28 +1,22 @@
 import ProgressBox from '@/components/ui/progress-box/progress-box';
-import { filterOrderStatus, ORDER_STATUS } from '@/lib/constants/order-status';
-import { OrderStatus, PaymentStatus } from '@/types';
+import {
+  filterOrderStatus,
+  ORDER_BUYER_MAIN_STATUS,
+} from '@/lib/constants/order-status';
+import { OrderStatusBuyer, OrderStatusDetail } from '@/types';
 
 interface Props {
-  orderStatus?: OrderStatus;
-  paymentStatus?: PaymentStatus;
+  lastStatus: OrderStatusBuyer;
+  orderStatuses?: OrderStatusDetail[];
 }
 
-const OrderStatusProgressBox = ({ paymentStatus, orderStatus }: Props) => {
-  const currentStatusIndex =
-    ORDER_STATUS.findIndex((o) => o.status === orderStatus) ?? 0;
-  const filterStatus = filterOrderStatus(
-    ORDER_STATUS,
-    paymentStatus!,
-    currentStatusIndex
+const OrderStatusProgressBox = ({ orderStatuses, lastStatus }: Props) => {
+  const { statuses, current } = filterOrderStatus(
+    orderStatuses ?? [],
+    lastStatus
   );
 
-  return (
-    <ProgressBox
-      data={filterStatus}
-      status={orderStatus!}
-      filledIndex={currentStatusIndex}
-    />
-  );
+  return <ProgressBox data={statuses} filledIndex={current} />;
 };
 
 export default OrderStatusProgressBox;

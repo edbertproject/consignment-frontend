@@ -5,14 +5,14 @@
   "scripts": {
     "clean": "rimraf \"{.next,node_modules,__generated__,.cache,src/framework/graphql/**/*.d.ts}\"",
     "gql-clean": "rimraf \"{__generated__,.next,.cache,src/framework/graphql/**/*.d.ts}\"",
-    "dev:rest": "next dev -p 3003",
+    "dev:rest": "next dev -p 3000",
     "build:rest": "next build",
     "codegen": "node -r dotenv/config $(yarn bin)/graphql-let",
     "dev:gql": "yarn codegen && next dev -p 3001",
     "build:gql": "yarn codegen && next build",
     "start": "next start",
     "lint": "next lint",
-    "postbuild:rest": "next-sitemap",
+    "aspostbuild:rest": "next-sitemap",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -50,6 +50,7 @@
     "react": "17.0.2",
     "react-content-loader": "6.2.0",
     "react-copy-to-clipboard": "5.0.4",
+    "react-datepicker": "^4.16.0",
     "react-device-detect": "2.1.2",
     "react-dom": "17.0.2",
     "react-dropzone": "12.0.4",

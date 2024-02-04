@@ -3,11 +3,7 @@ import { AddToCart } from '@/components/products/add-to-cart/add-to-cart';
 import usePrice, { formatPrice } from '@/lib/use-price';
 import { ThumbsCarousel } from '@/components/ui/thumb-carousel';
 import { useTranslation } from 'next-i18next';
-import { getVariations } from '@/lib/get-variations';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import isEqual from 'lodash/isEqual';
-import isEmpty from 'lodash/isEmpty';
-import Truncate from '@/components/ui/truncate';
 import { scroller, Element } from 'react-scroll';
 import CategoryBadges from './category-badges';
 import VariationPrice from './variation-price';
@@ -26,31 +22,33 @@ import { HeartOutlineIcon } from '@/components/icons/heart-outline';
 import { HeartFillIcon } from '@/components/icons/heart-fill';
 import Spinner from '@/components/ui/loaders/spinner/spinner';
 import { useUser } from '@/framework/user';
-import { useInWishlist, useToggleWishlist } from '@/framework/wishlist';
+import {
+  useInWishlist,
+  useRemoveFromWishlist,
+  useToggleWishlist,
+} from '@/framework/wishlist';
 import { useIntersection } from 'react-use';
 import { StarIcon } from '@/components/icons/star-icon';
 import { TimeIcon } from '@/components/icons/time-icon';
 import { WalletBid } from '@/components/icons/category/wallet-bid';
-import Link from '@/components/ui/link';
 import { PencilBid } from '@/components/icons/category/pencil-bid';
 import useCountdown from '@/lib/use-countdown';
 import dayjs from 'dayjs';
 import { useBid } from '@/framework/product';
 import Button from '@/components/ui/button';
 import Pusher from 'pusher-js';
-import { getEnv } from '@/config/get-env';
-import { API_ENDPOINTS } from '@/framework/client/api-endpoints';
 import { useQueryClient } from 'react-query';
 
 function FavoriteButton({
   productId,
   className,
 }: {
-  productId: string;
+  productId: number;
   className?: string;
 }) {
   const { isAuthorized } = useUser();
   const { toggleWishlist, isLoading: adding } = useToggleWishlist(productId);
+  const { removeFromWishlist, isLoading: removing } = useRemoveFromWishlist();
   const { inWishlist, isLoading: checking } = useInWishlist({
     enabled: isAuthorized,
     product_id: productId,
@@ -62,10 +60,15 @@ function FavoriteButton({
       openModal('LOGIN_VIEW');
       return;
     }
-    toggleWishlist({ product_id: productId });
+
+    if (inWishlist) {
+      removeFromWishlist(productId);
+    } else {
+      toggleWishlist({ product_id: productId });
+    }
   }
 
-  const isLoading = adding || checking;
+  const isLoading = adding || checking || removing;
   if (isLoading) {
     return (
       <div
@@ -111,20 +114,23 @@ const Details: React.FC<Props> = ({
   const {
     id,
     name,
-    photo, //could only had image we need to think it also
     photos,
     description,
-    type,
     quantity,
-    available_quantity,
     current_bid,
-    start_price,
     multiplied_price,
     start_date,
     end_date,
     slug,
+    partner_id,
+    status,
   } = product ?? {};
+
+  const { me } = useUser();
   const notStarted = dayjs().isBefore(dayjs(start_date));
+
+  const ownProduct = me?.partner?.id === partner_id;
+  const active = status === 'Active';
 
   const [currentBid, setCurrentBid] = useState<number>(current_bid);
 
@@ -219,7 +225,10 @@ const Details: React.FC<Props> = ({
           </div>
 
           <div className="product-gallery h-full">
-            <ThumbsCarousel gallery={photos} hideThumbs={photos?.length <= 1} />
+            <ThumbsCarousel
+              gallery={photos ?? []}
+              hideThumbs={(photos?.length ?? 0) <= 1}
+            />
           </div>
         </div>
 
@@ -338,7 +347,7 @@ const Details: React.FC<Props> = ({
                         <Button
                           onClick={() => bid(currentBid + multiplied_price)}
                           loading={bidLoading}
-                          disabled={bidLoading}
+                          disabled={bidLoading || ownProduct || !active}
                           className="focus:ring-primary-6000 relative inline-flex h-auto flex-1 items-center justify-center rounded-full bg-accent px-4 py-3 text-sm  font-medium text-neutral-50 transition-colors hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:bg-opacity-70 sm:px-6 sm:text-base "
                         >
                           <WalletBid />
@@ -347,7 +356,7 @@ const Details: React.FC<Props> = ({
                         <Button
                           className="focus:ring-primary-6000 relative inline-flex h-auto flex-1 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 px-4  py-3 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:px-6 sm:text-base "
                           loading={bidLoading}
-                          disabled={bidLoading}
+                          disabled={bidLoading || ownProduct || !active}
                           onClick={() => customBid()}
                         >
                           <PencilBid />
@@ -364,7 +373,7 @@ const Details: React.FC<Props> = ({
               <div className="mt-6 flex flex-col items-center md:mt-6 lg:flex-row">
                 <div className="mb-3 w-full lg:mb-0 lg:max-w-[400px]">
                   <AddToCart
-                    disabled={!isAuthorized}
+                    disabled={!isAuthorized || ownProduct || !active}
                     data={product}
                     variant="big"
                   />

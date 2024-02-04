@@ -1,12 +1,13 @@
 import { RadioGroup } from '@headlessui/react';
 import { useAtom } from 'jotai';
 import ScheduleCard from './schedule-card';
-import { addressAtom, deliveryTimeAtom } from '@/store/checkout';
+import { addressAtom, deliveryShippingAtom } from '@/store/checkout';
 import { useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import { useSettings } from '@/framework/settings';
 import { useShippingMethod } from '@/framework/checkout';
 import useDebounce from '@/lib/hooks/use-debounce';
+import { useRouter } from 'next/router';
 
 interface ScheduleProps {
   label: string;
@@ -21,16 +22,20 @@ export const ScheduleGrid: React.FC<ScheduleProps> = ({
 }) => {
   const { t } = useTranslation('common');
 
+  const router = useRouter();
   const [address] = useAtom(addressAtom);
-  const [selectedSchedule, setSchedule] = useAtom(deliveryTimeAtom);
+  const [selectedShipping, setShipping] = useAtom(deliveryShippingAtom);
 
   const debounceAddress = useDebounce(address, 300);
   const { loadShipping, isLoadingShipping, dataShipping } = useShippingMethod();
 
   useEffect(() => {
     if (debounceAddress?.id) {
+      const { product_auction_id } = router.query;
+
       loadShipping({
-        user_address_id: debounceAddress.id,
+        user_address_id: debounceAddress.id.toString(),
+        product_auction_id: (product_auction_id as string) ?? null,
       });
     }
   }, [debounceAddress]);
@@ -65,7 +70,7 @@ export const ScheduleGrid: React.FC<ScheduleProps> = ({
       )}
 
       {!isLoadingShipping && dataShipping && dataShipping?.length && (
-        <RadioGroup value={selectedSchedule} onChange={setSchedule}>
+        <RadioGroup value={selectedShipping} onChange={setShipping}>
           <RadioGroup.Label className="sr-only">{label}</RadioGroup.Label>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {dataShipping?.map((schedule, idx: number) => (

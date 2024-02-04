@@ -28,7 +28,7 @@ export const getStaticProps: GetStaticProps<
     per_page: 5,
     page: 1,
     with: 'photo',
-    search: 'status:Active;condition:Good Condition',
+    variety: 'hot',
   };
 
   await queryClient.prefetchQuery(
@@ -41,7 +41,7 @@ export const getStaticProps: GetStaticProps<
     per_page: 5,
     page: 1,
     with: 'photo',
-    search: 'status:Active;condition:Good Condition',
+    variety: 'featuring',
   };
 
   await queryClient.prefetchQuery(
@@ -54,7 +54,7 @@ export const getStaticProps: GetStaticProps<
     per_page: 5,
     page: 1,
     with: 'photo',
-    search: 'status:Active;condition:Good Condition',
+    variety: 'incoming',
   };
 
   await queryClient.prefetchQuery(
@@ -76,8 +76,9 @@ export const getStaticProps: GetStaticProps<
     props: {
       variables: {
         newProducts: newProductVariables,
-        popularProducts: hotProductVariables,
+        hotProducts: hotProductVariables,
         categories: categoryVariables,
+        incomingProducts: incomingProductVariables,
       },
       ...(await serverSideTranslations(locale!, ['common', 'banner'])),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),

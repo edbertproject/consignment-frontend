@@ -26,7 +26,8 @@ const ItemCard = ({ item, notAvailable }: Props) => {
             {item.quantity}
           </span>
           <span className="mx-2">x</span>
-          <span>{item.name}</span> | <span>{item.unit}</span>
+          <span>{item.name}</span>
+          {/* | <span>{item.unit}</span>*/}
         </span>
       </div>
       <span

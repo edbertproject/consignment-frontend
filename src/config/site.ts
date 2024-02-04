@@ -90,9 +90,8 @@ export const siteSettings = {
       name: 'Consignx',
       href: '/',
     },
-    address:
-      'lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum',
-    email: 'dummy@dummy.com',
+    address: 'The best platform for consign your product',
+    email: 'customer@consignx.com',
     phone: '+62 856-698-0694',
     menus: [
       {
@@ -114,10 +113,6 @@ export const siteSettings = {
           {
             name: 'text-faq-help',
             href: Routes.help,
-          },
-          {
-            name: 'text-contact-us',
-            href: Routes.contactUs,
           },
         ],
       },
